@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fit Finds</title>
+<title>Fashion IG List</title>
 <style>
   :root { --bg:#faf7f5; --card:#fff; --text:#1f1a1a; --muted:#7a6f6f; --accent:#c2410c; --line:#eadfd9; }
   @media (prefers-color-scheme: dark) {
@@ -14,10 +14,14 @@
   .wrap { max-width:900px; margin:0 auto; padding:20px 16px 60px; }
   h1 { font-size:1.6rem; margin:0 0 4px; }
   .sub { color:var(--muted); margin:0 0 16px; }
-  input { width:100%; padding:12px 14px; font-size:1rem; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--text); margin-bottom:18px; }
+  input { width:100%; padding:12px 14px; font-size:1rem; border:1px solid var(--line); border-radius:10px; background:var(--card); color:var(--text); }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 18px; }
+  .chip { padding:6px 14px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--text); cursor:pointer; font-size:.9rem; }
+  .chip.on { background:var(--accent); border-color:var(--accent); color:#fff; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:12px; }
   .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; }
   .card h3 { margin:0 0 2px; font-size:1.05rem; word-break:break-all; }
+  .tag { font-size:.75rem; color:var(--muted); }
   .note { font-size:.9rem; color:var(--muted); margin:8px 0 0; }
   .btns { display:flex; gap:8px; margin-top:12px; }
   .btns a { flex:1; text-align:center; padding:8px; border-radius:8px; text-decoration:none; font-size:.9rem; border:1px solid var(--accent); color:var(--accent); }
@@ -27,28 +31,37 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Fit Finds</h1>
+  <h1>Fashion IG List</h1>
   <p class="sub" id="count"></p>
-  <input id="q" type="search" placeholder="Search username or note...">
+  <input id="q" type="search" placeholder="Search username, note or category...">
+  <div class="chips" id="chips"></div>
   <div class="grid" id="grid"></div>
 </div>
-
 <script>
-/* ==== EDIT HERE: add your accounts ====
+/* ==== EDIT HERE: add your accounts from the book ====
    username: without the @
+   category: Clothes, Shoes, Bags, Accessories, etc (any word works)
    website:  optional, leave "" if none
    note:     optional
 */
 const PROFILES = [
-  { username: "example_account", website: "https://example.com", note: "Sample - replace me" },
-  { username: "another_account", website: "", note: "Sample - replace me" }
+  { username: "example_clothes", category: "Clothes", website: "https://example.com", note: "Sample - replace me" },
+  { username: "example_shoes", category: "Shoes", website: "", note: "Sample - replace me" }
 ];
 /* ================================================ */
-
 const grid = document.getElementById("grid");
+const chips = document.getElementById("chips");
 const q = document.getElementById("q");
 const count = document.getElementById("count");
-
+let active = "All";
+const cats = ["All", ...new Set(PROFILES.map(p => p.category).filter(Boolean))];
+cats.forEach(c => {
+  const b = document.createElement("button");
+  b.className = "chip" + (c === active ? " on" : "");
+  b.textContent = c;
+  b.onclick = () => { active = c; [...chips.children].forEach(x => x.classList.toggle("on", x.textContent === c)); render(); };
+  chips.appendChild(b);
+});
 function esc(s) {
   return String(s || "")
     .replace(/&/g, "&")
@@ -57,27 +70,24 @@ function esc(s) {
     .replace(/"/g, """)
     .replace(/'/g, "&#39;");
 }
-
 function render() {
   const term = q.value.trim().toLowerCase();
   const list = PROFILES.filter(p =>
-    !term || [p.username, p.note].join(" ").toLowerCase().includes(term)
+    (active === "All" || p.category === active) &&
+    (!term || [p.username, p.category, p.note].join(" ").toLowerCase().includes(term))
   );
   count.textContent = list.length + " of " + PROFILES.length + " accounts";
-  if (!list.length) {
-    grid.innerHTML = '<div class="empty">No accounts found.</div>';
-    return;
-  }
+  if (!list.length) { grid.innerHTML = '<div class="empty">No accounts found.</div>'; return; }
   grid.innerHTML = list.map(p => {
     const u = encodeURIComponent(p.username.replace(/^@/, ""));
     return '<div class="card"><h3>@' + esc(p.username.replace(/^@/, "")) + '</h3>' +
+      '<span class="tag">' + esc(p.category) + '</span>' +
       (p.note ? '<p class="note">' + esc(p.note) + '</p>' : '') +
       '<div class="btns"><a class="ig" target="_blank" rel="noopener" href="https://instagram.com/' + u + '">Instagram</a>' +
       (p.website ? '<a target="_blank" rel="noopener" href="' + esc(p.website) + '">Website</a>' : '') +
       '</div></div>';
   }).join("");
 }
-
 q.addEventListener("input", render);
 render();
 </script>
