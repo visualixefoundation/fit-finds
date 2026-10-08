@@ -50,9 +50,12 @@ const q = document.getElementById("q");
 const count = document.getElementById("count");
 
 function esc(s) {
-  return String(s || "").replace(/[&<>"']/g, m => ({
-    "&": "&", "<": "<", ">": ">", '"': """, "'": "&#39;"
-  }[m]));
+  return String(s || "")
+    .replace(/&/g, "&")
+    .replace(/</g, "<")
+    .replace(/>/g, ">")
+    .replace(/"/g, """)
+    .replace(/'/g, "&#39;");
 }
 
 function render() {
